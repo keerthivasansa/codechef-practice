@@ -29,12 +29,6 @@ export async function fetchProblems(filters: Partial<Filter>) {
     return problems;
 }
 
-export async function fetchUserCompleted() {
-    const userCompleted = await fetch("http://localhost:3000/api/problems/user")
-    return await userCompleted.json() as string[];
-}
-
-
 function parseProblem(probData: Record<string, any>) {
     const tags = (probData['user_tags'] || []).concat(probData['computed_tags'] || []);
     const contest = Number(probData['intended_contest_code'].substring(5))

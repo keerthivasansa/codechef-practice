@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import {
   fetchGlobalSettings,
   fetchProblems,
-  fetchUserCompleted,
 } from "./lib/actions";
 import { GlobalFilter, Problem } from "@prisma/client";
 import Head from "next/head";
@@ -20,6 +19,12 @@ export default function Home() {
     filterTags: [],
     settingId: 1,
   });
+
+  
+  async function fetchUserCompleted() {
+    const userCompleted = await fetch("/api/problems/user")
+    return await userCompleted.json() as string[];
+}
 
   async function init() {
     // Update the backend with latest data.
