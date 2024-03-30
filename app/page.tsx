@@ -1,10 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  fetchGlobalSettings,
-  fetchProblems,
-} from "./lib/actions";
+import { fetchGlobalSettings, fetchProblems } from "./lib/actions";
 import { GlobalFilter, Problem } from "@prisma/client";
 import Head from "next/head";
 
@@ -20,11 +17,10 @@ export default function Home() {
     settingId: 1,
   });
 
-  
   async function fetchUserCompleted() {
-    const userCompleted = await fetch("/api/problems/user")
-    return await userCompleted.json() as string[];
-}
+    const userCompleted = await fetch("/api/problems/user");
+    return (await userCompleted.json()) as string[];
+  }
 
   async function init() {
     // Update the backend with latest data.
@@ -75,10 +71,10 @@ export default function Home() {
 
   return (
     <>
-      <Head>
-        <title>Codechef Practice</title>
-      </Head>
       <main className="p-8">
+        <Head>
+          <title>Codechef Practice</title>
+        </Head>
         <h1 className="font-sans font-bold text-4xl">Codechef Practice</h1>
         <div className="py-6">
           <p>Rating:</p>
@@ -121,7 +117,11 @@ export default function Home() {
           </b>
         </p>
         {dispProbs.map((p) => (
-          <a href={`https://www.codechef.com/problems/${p.code}`} key={p.code}>
+          <a
+            href={`https://www.codechef.com/problems/${p.code}`}
+            target="_blank"
+            key={p.code}
+          >
             <div
               className={`${
                 completed.includes(p.code) ? "bg-green-200" : "bg-gray-300"
