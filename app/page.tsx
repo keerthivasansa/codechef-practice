@@ -24,7 +24,11 @@ export default function Home() {
 
   async function init() {
     // Update the backend with latest data.
-    await fetch("/api/problems/update");
+    await fetch("/api/problems/update", {
+      next: {
+        revalidate: 3600 * 2, // 2 hours
+      },
+    });
 
     const probFetch = fetchProblems({});
     const settingFetch = fetchGlobalSettings();
@@ -146,7 +150,8 @@ export default function Home() {
         <p>
           {allProbs.length > 0 && (
             <small>
-              Latest Contest: {allProbs[0].contest}, Oldest Contest: {allProbs.at(-1)!.contest}
+              Latest Contest: {allProbs[0].contest}, Oldest Contest:{" "}
+              {allProbs.at(-1)!.contest}
             </small>
           )}
         </p>

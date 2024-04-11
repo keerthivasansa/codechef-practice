@@ -8,6 +8,8 @@ export const GET = async () => {
     const threshold = 75;
     const oldestContest = latestContest - threshold;
 
+    console.log(new Date().toString());
+    
     const problems: Promise<Problem[]>[] = [];
 
     for (let c = oldestContest; c <= latestContest; c++) {
