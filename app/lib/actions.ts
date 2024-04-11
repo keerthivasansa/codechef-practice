@@ -13,7 +13,6 @@ export async function fetchTags() {
 export async function fetchProblems(filters: Partial<Filter>) {
     const ratingLow = filters.startRating ?? 0;
     const ratingHigh = filters.endRating ?? 4000;
-    const tags = filters.tags || [];
 
     const problems = await prisma.problem.findMany({
         where: {
@@ -87,12 +86,16 @@ export async function fetchGlobalSettings() {
 }
 
 export async function fetchLatestContest() {
-    const url = 'https://www.codechef.com/api/list/problems/recent?page=0&limit=1'
+    const url = 'https://www.codechef.com/api/list/problems/recent'
     const resp = await fetch(url);
     const data = (await resp.json())['data'];
-    const contestCode = data[0].contest_code;
-    const contest = Number(contestCode.substring(5));
-    return contest;
+    const codes = data.map((p: Record<string, string>) => {
+        const contest = Number(p.contest_code.substring(5));
+        return contest;
+    })
+    console.log({ codes });
+    const latest = Math.max(...codes);
+    return latest;
 }
 
 export async function fetchContestProblems(contest: number) {

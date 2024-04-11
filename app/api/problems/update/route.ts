@@ -3,9 +3,9 @@ import { Problem } from "@prisma/client";
 import { NextRequest } from "next/server";
 
 
-export const GET = async (req: NextRequest) => {
+export const GET = async () => {
     const latestContest = await fetchLatestContest();
-    const threshold = 50;
+    const threshold = 75;
     const oldestContest = latestContest - threshold;
 
     const problems: Promise<Problem[]>[] = [];
@@ -17,7 +17,7 @@ export const GET = async (req: NextRequest) => {
     const allProbs = await Promise.all(problems);
     const probs = allProbs.flat();
 
-    console.log(probs[0]);
+    console.log("updated contests from", oldestContest, "to", latestContest);
 
     return Response.json({ 
         last_fetch: new Date().toString(), 

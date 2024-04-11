@@ -14,6 +14,10 @@
     "next": "14.1.4",
     "react": "^18",
     "react-dom": "^18",
+    "react-multi-select-component": "^4.3.4",
+    "react-select": "^5.8.0",
+    "react-widgets": "^5.8.4",
+    "react-widgets-tailwind": "^1.1.5",
     "zustand": "^4.5.2"
   },
   "devDependencies": {

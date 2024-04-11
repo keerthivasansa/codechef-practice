@@ -21,6 +21,7 @@ model Problem {
   tags       String[]
   score      Float
   contest    Int
+  completed  Boolean  @default(false)
 }
 
 model GlobalFilter {

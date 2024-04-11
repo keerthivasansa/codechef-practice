@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchGlobalSettings, fetchProblems } from "./lib/actions";
+import { fetchGlobalSettings, fetchProblems, fetchTags } from "./lib/actions";
 import { GlobalFilter, Problem } from "@prisma/client";
 import Head from "next/head";
+import { Multiselect } from "react-widgets/cjs";
+import ProblemDisp from "./components/problem";
 
 export default function Home() {
   const [dispProbs, setDispProbs] = useState<Problem[]>([]);
   const [allProbs, setAllProbs] = useState<Problem[]>([]);
-  const [completed, setCompleted] = useState<string[]>([]);
   const [initialized, setInit] = useState(false);
   const [globalSetting, setGlobalSetting] = useState<GlobalFilter>({
     startRating: 0,
@@ -16,29 +17,28 @@ export default function Home() {
     filterTags: [],
     settingId: 1,
   });
+  const [tags, setTags] = useState<string[]>([]);
 
-  async function fetchUserCompleted() {
-    const userCompleted = await fetch("/api/problems/user");
-    return (await userCompleted.json()) as string[];
-  }
+  const setFilterTags = (arr: string[]) =>
+    setGlobalSetting({ ...globalSetting, filterTags: arr });
 
   async function init() {
     // Update the backend with latest data.
     await fetch("/api/problems/update");
 
     const probFetch = fetchProblems({});
-    const completedFetch = fetchUserCompleted();
     const settingFetch = fetchGlobalSettings();
+    const tagFetch = fetchTags();
 
-    const [problems, completedProbs, settings] = await Promise.all([
+    const [problems, settings, availableTags] = await Promise.all([
       probFetch,
-      completedFetch,
       settingFetch,
+      tagFetch,
     ]);
 
     setAllProbs(problems);
-    setCompleted(completedProbs);
     setGlobalSetting(settings);
+    setTags(availableTags);
     setInit(true);
   }
 
@@ -49,22 +49,37 @@ export default function Home() {
     });
   }
 
+  function toggleProblem(code: string) {
+    const newProbs = allProbs.map((p) => {
+      if (p.code != code) return p;
+      p.completed = !p.completed;
+      return p;
+    });
+
+    setAllProbs(newProbs);
+
+    fetch(`/api/problems/toggle?code=${code}`);
+  }
+
   useEffect(() => {
     init();
   }, []);
 
   useEffect(() => {
     if (!initialized) return;
+    const tags = globalSetting.filterTags.map((t) => t.toLowerCase());
+    const st = globalSetting.startRating;
+    const ed = globalSetting.endRating;
     updateSetting();
     setDispProbs(
       allProbs.filter((prob) => {
-        globalSetting.filterTags.forEach((tag) => {
-          if (!prob.tags.includes(tag)) return false;
-        });
-        return (
-          prob.difficulty >= globalSetting.startRating &&
-          prob.difficulty <= globalSetting.endRating
-        );
+        const probTags = prob.tags.map((t) => t.toLowerCase());
+        for (const tag of tags) {
+          if (!probTags.includes(tag)) return false;
+        }
+        if (st > 0 && prob.difficulty < st) return false;
+        if (ed > 0 && prob.difficulty > ed) return false;
+        return true;
       })
     );
   }, [allProbs, globalSetting, initialized]);
@@ -110,35 +125,31 @@ export default function Home() {
         <p>
           Total problems found:<b> {dispProbs.length}</b>
         </p>
+
         <p>
           Completed:{" "}
           <b className="text-green-800">
-            {dispProbs.filter((prob) => completed.includes(prob.code)).length}
+            {dispProbs.filter((prob) => prob.completed).length}
           </b>
         </p>
+        <br />
+
+        <p>Tags: Choose tags </p>
+        <Multiselect
+          data={tags as any}
+          value={globalSetting.filterTags}
+          onChange={setFilterTags}
+        />
         {dispProbs.map((p) => (
-          <a
-            href={`https://www.codechef.com/problems/${p.code}`}
-            target="_blank"
-            key={p.code}
-          >
-            <div
-              className={`${
-                completed.includes(p.code) ? "bg-green-200" : "bg-gray-300"
-              } px-4 py-2 my-3 rounded-lg`}
-            >
-              <span className="mr-4">
-                <b>{p.difficulty}</b>
-              </span>
-              <h5>{p.name}</h5>
-              <p>
-                <small className="text-xs">
-                  {p.contest} x {p.upvotes}
-                </small>
-              </p>
-            </div>
-          </a>
+          <ProblemDisp problem={p} toggleFn={toggleProblem} key={p.code} />
         ))}
+        <p>
+          {allProbs.length > 0 && (
+            <small>
+              Latest Contest: {allProbs[0].contest}, Oldest Contest: {allProbs.at(-1)!.contest}
+            </small>
+          )}
+        </p>
       </main>
     </>
   );
